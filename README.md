@@ -15,6 +15,10 @@
 + how to select new hypothesis? flexible+conservative
 + inference given model how to respond
 + vocabulary
+    - good predictors if the difference between their beliefs and the distribution
+of the others’ actual strategies goes to zero over time
 + theorem
 + proofs: subproblems 
-+ beliefs: naive no allowance for the possibility of change when rejecting a test
++ beliefs: naive no allowance for the possibility of change when rejecting a test. but because of cpnservativity - hypothesis testing strategies are eps-best reply to their belief
++ as in SA change of params over time (convergence in probability)
++ summarization
