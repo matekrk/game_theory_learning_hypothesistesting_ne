@@ -1,0 +1,296 @@
+\documentclass[]{spie}  % US letter paper
+%\documentclass[a4paper]{spie}  % A4 paper
+
+\renewcommand{\baselinestretch}{1.0} % Change to 1.65 for double spacing
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx,wrapfig}
+\usepackage{enumitem}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{comment}
+\usepackage{enumerate}
+\usepackage[sort=def]{glossaries}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\usepackage{mdframed}
+\newmdtheoremenv{theo}{Theorem}
+
+\title{Game Theory Project}
+
+\author{Mateusz Pyla}
+\affil{Github \href{https://github.com/matekrk/game_theory_learning_hypothesistesting_ne}{Repo}}
+\affil{Incremental Learning, Game Theory, and Applications 2022}
+\affil{Master IASD, Université Paris Dauphine-PSL}
+
+\pagestyle{plain}
+\setcounter{page}{1}
+\makeglossaries
+
+\begin{document} 
+\maketitle
+\setlength{\parindent}{0pt}. 
+
+\vspace{-0.6cm}
+
+\begin{abstract}
+
+We consider a typical non-collaborative game theory setup; $n$ ($\varepsilon$-rational) players want to learn strategies for a repeated (finite) stage game. The players use the standard statistical tools in order to validate their beliefs. We assume no prior knowledge, and we do not know the opponents' behaviour nor playoffs. \\Dean Foster and H. Peyton Young design learning strategies that come close to subgame equilibrium play \cite{paper}.
+%show that hypothesis testing leads to learning to play equilibrium and obtaining strategies close to subgame perfect / 
+
+\end{abstract}
+
+\keywords{Game Theory, Learning, Nash Equilibrium, Hypothesis test, Repeated game}
+
+\section{Introduction}
+\label{sec:intro}
+
+\subsection{Notation}
+\label{sec:notation}
+
+The paper itself is demanding so in order to enhance the clarity of its message we decided to build a small glossary.
+
+%Term definitions
+
+\newglossaryentry{stage}{name=G, description={(finite) Stage game}}
+\newglossaryentry{stageinf}{name=$G^{\infty}$, description={Infinitely repeated stage game}}
+\newglossaryentry{n_players}{name=n, description={Number of players}}
+\newglossaryentry{i_player}{name=i, description={Player i}}
+\newglossaryentry{small_t}{name=t, description={index for time}}
+\newglossaryentry{big_T}{name=T, description={time limit for finite game}}
+\newglossaryentry{vareps}{name=$\varepsilon$, description={Given a non-negative parameter, please refer to \autoref{sec:setting}}}
+\newglossaryentry{lambdaa}{name=$\lambda$, description={Degree of conservation}}
+\newglossaryentry{sigma}{name=$\sigma$, description={Degree of smoothing - we talk about $\sigma_i$-optimal response}}
+\newglossaryentry{tau}{name=$\tau$, description={Test Tolerance}}
+\newglossaryentry{small_s}{name=s, description={Amount of data collected}}
+\newglossaryentry{mm}{name=m, description={Memory (we say a model has at most memory m)}}
+\newglossaryentry{hiomega}{name=$\omega$, description={History of play}}
+\newglossaryentry{hiomegat}{name=$\omega^t$, description={Vector of $\omega_i^t$, the actions taken in period t}}
+\newglossaryentry{hiomegabart}{name=$\bar{\omega}^t$, description={Sequence of actions taken in periods from 1 to t}}
+\newglossaryentry{hiomegabar}{name=$\bar{\omega}$, description={Sequence of actions in the whole history}}
+\newglossaryentry{OmegaOfomegabart}{name=$\Omega(\bar{\omega}^t)$, description={Set of all continuations of the initial history $\bar{\omega}^t$}}
+\newglossaryentry{Triangle}{name=$\Delta$, description={The set of probability measures over the set of the actions.}}
+\newglossaryentry{TriangleM}{name=$\Delta^M$, description={The set of probability measures over the set of the actions accounting the memory M}}
+\newglossaryentry{bigX}{name=$X$, description={Action space, i.e. $X = \prod X_i$}}
+\newglossaryentry{aaa_vector}{name=$\overrightarrow{a}$, description={Vector of responses; n-tuple of strategies}}
+\newglossaryentry{AAA_i}{name=$\mathcal{A}_i$, description={Response space}}
+\newglossaryentry{f_i_given_omegatbar}{name=$f_i(\cdot|\bar{\omega}^t)$, description={Response space}}
+\newglossaryentry{AA}{name=$\mathcal{A}$, description={Space of strategies}}
+\newglossaryentry{A_i^sigmai}{name=$A_i^{\sigma_i}$, description={Continuous mapping from i's model space to i's response space - smoothed best response function}}
+\newglossaryentry{uvector}{name=$\overrightarrow{u}$, description={Vector of utility functions, $u_i: X \xrightarrow \mathcal{R}$}}
+%\newglossaryentry{uu}{name=$\overrightarrow{u}$, description={Function returning the vector of utilities for each player}}
+\newglossaryentry{uu_i}{name=$u_i$, description={Utility function for player i}}
+\newglossaryentry{uu_i^1}{name=$u_i^1$, description={Utility (function) from time period 1 for player i}}
+\newglossaryentry{weirdo}{name=$u(\cdot\cdot)$, description={applied to $(x_i,\phi_i^t)$ - Expected utility for i, discounted to time t, from playing $x_i$ in each period from t on, give the model $\phi_i$}}
+\newglossaryentry{fi_model}{name=$\phi_i$, description={Model}}
+\newglossaryentry{bigphi}{name=$\Phi_i$, description={Space of all models having memory at most m, $\Phi_i = \prod_{j \neq i} \Delta_j^M $}}
+\newglossaryentry{bigphii}{name=$\Phi$, description={Space of vectors of models, $\Phi = \prod_i \Phi_i $}}
+\newglossaryentry{mappingp}{name=P, description={mapping all players
+current responses to the correct models, function taking a vector of responses and returning the vector of correct models $\prod_{j \neq i}(a_j)$}}
+\newglossaryentry{mappingasigma}{name=$A^{\overrightarrow{\sigma}}$, description={Mapping all players
+believe to their responses, function taking a vector of models (at time t) and returning the vector of distributions generating the process $A_i^{\sigma_i}(\phi_i)$}}
+\newglossaryentry{null_hyp}{name=$H_0$, description={Null hypothesis}}
+\newglossaryentry{alt_hyp}{name=$H_1$, description={Alternative hypothesis}}
+\newglossaryentry{v_0}{name=$\nu_0$, description={Null distribution}}
+\newglossaryentry{vtrue}{name=$\nu$, description={True distribution}}
+\newglossaryentry{v_ai_phii}{name=$v_{a_i, \phi_i}$, description={Probability measure over infinite histories induced by the reposnse $a_i$ and the model $\phi_i$}}
+\newglossaryentry{ppit}{name=$p_i^t(x_{-i}|\cdot)$, description={Conditional probability distribution specified by model $\phi_i$ for every initial history $\bar{\omega}^{t-1}$}}
+\newglossaryentry{betaisi}{name=$\beta_{i, s_i, \tau}$, description={Probability of making type-II error}}
+\newglossaryentry{betaisitau}{name=$\beta_{i, s_i, \tau}$, description={Least upper bound on making a type-II error when the true distribution $\nu$ is more than $\tau$ away from the null $\nu_0$}}
+\newglossaryentry{rr}{name=R, description={Rejection set}}
+\newglossaryentry{rhol}{name=$\rho$, description={Discount factor}}
+\newglossaryentry{hh}{name=h, description={minimum probability that i plays}}
+
+%\printglossaries
+ 
+%Print the glossary
+\printglossaries
+
+\subsection{Nature of the game}
+\label{sec:setting}
+
+Let us suppose that \gls{n_players} players want to play a repetitive finite-action game, which we denote as stage game \gls{stage}. In general we do not want to bound ourselves by the finite horizon \gls{big_T} hence we consider \gls{stageinf}. Each player \gls{i_player} wants to maximize their own profit hence we deal with non-cooperative game theory. Each game is in normal form meaning that the actions are perform simultaneously. For each period \gls{small_t}, each player chooses their own action \gls{hiomegat}, observe the opponents' actions and record their own payoff.
+
+Although we assumed that the game is of perfect information, this is not a strong constraint. On contrary, we \textbf{make no assumption} on prior (common) knowledge, opponents' strategies nor payoffs (including the distribution). Hence we aim at finding robust (\autoref{sec:previous}) algorithm for our problem. We call player to be \gls{vareps}-good predictor if they do the predictions such that the mean square error is almost surely bounded by $\varepsilon$ as we go with $t$ to infinity, i.e.
+$$ \lim_{T \to \infty} \sup \frac{1}{T} \sum_{t=1}^T (\phi_i^t - B_i(\overrightarrow{a}^t))^2 \leq \varepsilon$$
+
+Assuming the environment as stated above, our ultimate goal is to model the strategic interactions between a set of players. In particular, we will focus on learning how to make predictions for almost rational players.
+
+\subsection{Learning}
+\label{sec:learning}
+The question of learning within game theory is not precisely defined. This may be caused by the fact that we have numerous of settings, and depending on requirements one may find various learning procedures compelling. In the simplest terms, for our case we are interested in finding the algorithm that learns how to map the history of previous games to predictions for the next games. One may point out that this is a very challenging task as the world to be learnt constantly changes under our actions.
+
+\subsubsection{Motivation}
+\label{sec:motivation}
+The framework of multiple agents interacting with each other has found many applications, including economics, business, biology. With the advance of widely understood artificial intelligence, the game theory also plays a role in designing the framework, especially due to its compatibility with reinforcement learning \cite{nowe2012game} and generative methods \cite{goodfellow2014generative} \cite{zhou2019survey}.
+
+
+\subsection{Previous approaches}
+\label{sec:previous}
+The authors of the papers are well-known experts in the field. It is highly likely that they were familiar with all the state of the art methods. They highlighted the following work on learning the strategies:
+\begin{enumerate}
+    \item Trivial algorithm (simple search the space of mixed strategies) dynamically converging to Nash equilibrium of the stage game is not adequate from the global picture's perspective. There are two main reasons:
+    \begin{itemize}
+        \item The process is not decentralized meaning that the learning is not performed for the individual
+        \item Finding such Nash equilibrium would require the relaxation of no prior assumption of the payoff knowledge.
+    \end{itemize}
+    \item For some games, using fictitious play leads to Nash equilibrium. 
+    \begin{itemize}
+        \item For many situations the convergence is not useful for predictions.
+        \item There are still some examples of games in which the algorithm diverges.
+    \end{itemize}
+    \item Knowing the appropriate Bayesian Nash equilibrium prior makes all limit points of the posterior to be also Bayesian Nash equilibrium. Authors of our paper claim that the problem  of solving the equilibrium is not solved, but rather rephrased.
+    \item Assigning positive probability in players' prior belief to all events with actual positive probability leads to guarantee of reaching $\varepsilon$-equilibrium $\varepsilon$ close enough with probability one. The authors of the main paper claim there is no robust procedure to determine such priors on other players' strategies which makes best-response strategies continuous. Instead, they propose another constraint 
+    \item Predicting the previous already realized events, i.e. conditional regret minimization. Given the history of games one can question whether playing one action would be superior over another. There are numerous methods although they only guarantee convergence to the set of correlated equilibria. 
+\end{enumerate}
+
+\subsection{Hypothesis testing}
+\label{sec:hypothesis}
+[TO-DO/NOT-SURE]
+
+
+\newpage
+\section{Comprehension}
+\label{sec:main}
+
+
+\subsection{Theorems}
+\label{sec:th}
+
+We firstly present our ultimate goal:
+
+\begin{theo}[Foster \& Young, 1998-2003]
+\label{maintheorem}
+Let G be a finite, normal-form, n-person game and let $\varepsilon \geq 0$. If the players are almost rational, use sufficiently powerful hypothesis tests with comparable amount of data, and are flexible in their adoption of new hypothesis, then at least $1-\varepsilon$ of the time:
+\begin{enumerate}[I]
+    \item Their repeated-game strategies are $\varepsilon$-close to subgame perfect equilibrium,
+    \item All players are $\varepsilon$-good predictors.
+\end{enumerate}
+\end{theo}
+
+In order to reach the stated results we will use the intermediate results that we will use as a milestones to prove the main theorem.
+
+\begin{lemma}[Powerful family of tests]
+\label{powerful}
+We define the family of hypothesis tests to be powerful if there are positive tolerance functions $k_i$ and $r_i$ such that for every tolerance $\tau > 0$ there is at least one test in the family such that
+$$ \alpha_{i,s_i} \leq k_i(\tau) e^{-r_i(\tau)s_i} \quad \quad \text{(Upper bound on type-I error)}$$
+$$ \beta{i,s_i} \leq k_i(\tau) e^{-r_i(\tau)s_i} \quad \quad \text{(Upper bound on type-II error)}$$
+\end{lemma}
+
+\begin{lemma}[Upper bound on type-I error]
+\label{upperbounds}
+Assume that null hypothesis imposes the conditional probability of observing any vector of actions at any time is at least $\xi$. Then: $$\forall \tau > 0 \quad \alpha_{i,s_i,\tau} \leq (1 + \frac{\tau}{\xi})^{s_i}\alpha_{i,s_i}$$
+\end{lemma}
+
+\begin{corollary}[Upper bound of type-I and type-II errors]
+$$ \beta_{i,s_i,\tau} \leq k_i(\tau) e^{-r_i(\tau) s_i/2} $$
+There exists $c_i(\tau) \leq \tau$ such that
+$$ \alpha_{i,s_i,c_i(\tau)}  \leq k_i(\tau) e^{-r_i(\tau) s_i/2} $$
+\end{corollary}
+
+\begin{lemma}[Fairly good model vector]
+\label{claim1}
+We call model vector $\overrightarrow{\phi}$ to be fairly good if it is good for all responsive players. We denote it to be good if it is good for all players, meaning $\lvert \phi_i - P_i(A^{\overrightarrow{\sigma}} (\overrightarrow{b})) \rvert \leq \tau$ holds for player $i$ (otherwise it is bad for $i$). Finally, we call it bad if it is not fairly good.
+
+The model vector $\overrightarrow{\phi}^t$ is fairly good at least $1-\varepsilon$ of the time.
+\end{lemma}
+
+
+\begin{theorem}[Guarantees for reposponses]
+\label{lemma2theorem1}
+We assume that for the conditions described in \autoref{maintheorem}, the participants use M memory hypotheses for which they employ suitable hypothesis tests with comparable amount of data. 
+
+Moreover we assume that the engaged players have $\sigma_i$-smoothed best response functions.
+
+Let $\varepsilon > 0$. There exist functions $\sigma(\varepsilon)$, $\tau(\varepsilon, \sigma)$ and $s(\varepsilon, \sigma, \tau)$ bounding the corresponding parameters.
+
+Then at least $1 - \varepsilon$ of the time $t$
+\begin{enumerate}[I]
+    \item $ \lvert a^t - A^{\overrightarrow{\sigma}} (P (\overrightarrow{a}^t)) \rvert \leq \varepsilon / 2$
+    \item $ \lvert U_i^t (a_i^t, P_i(\overrightarrow{a}^t)) - max_{a^{'}_i} U_i^t(a', P_i(\overrightarrow{a}^t)) \rvert \leq \varepsilon$ for all players $i$
+    \item $ \lvert b_i^t - P_i(A^{\sigma_i}(\overrightarrow{\phi}^t)) \rvert \leq \varepsilon $ for all players $i$
+\end{enumerate}
+\end{theorem}
+
+\begin{corollary}[Guarantee for repeated game]
+The second statement of the \autoref{lemma2theorem1} is equivalent to claiming that the repeated-game strategies are $\varepsilon$-close to the equilibria of the repeated game $G^{\infty}(\overrightarrow{u}, X)$ for at least $1 - \varepsilon$ of the time.
+
+The third statement imposes that all players are $\varepsilon$-good predictors.
+
+\end{corollary}
+
+
+\subsubsection{Intuition}
+Although the statements above are aligned in the correct order, it is essential to gain the intuition behind the formulas.
+
+We have two big ingredients: fixed point model and hypothesis test tools.
+
+Firstly, fixed points are equilibria. We are certain about their existences since we have two continuous maps between compact convex spaces to each other. Those two spaces are namely, the space of vector of models $\Phi \equiv \prod_i \Phi_i$ and the space of tuples of set of responses for players, i.e. strategies $\mathcal{A}$.
+
+\autoref{claim1} yields that with high probability, the players will reject the hypothesis when at the bad model vectors. Once we reach the fixed point, the probability of escaping it is negligible. 
+
+By putting up the claims listed in \autoref{sec:th} together, we build up the proof to finally reach the main theorem results.
+
+% ingredients, intuition put them together 
+
+\subsection{Proofs}
+\label{sec:proofs}
+
+
+
+[TO-DO ON SATURDAY]
+
+
+\section{Implementation}
+\label{sec:impl}
+[TO-DO ON SATURDAY]
+
+
+\section{Conclusion}
+
+Once again, the biggest achievement of the paper is to propose a robust way of learning the players' behaviour strategies. For each player we only assume that the player opponents' actions are public. The obtained results are satisfactory and they are based on well-grounded apparatus mathematical.
+
+\subsection{Learning Outcomes}
+\label{sec:conclusion1}
+
+The project was a fantastic opportunity to learn about the challenges that researchers in the field of game theory are facing. The paper is relatively old, nevertheless it has not yet had a natural successor to my best knowledge. This reflects the scale of the difficulty of the problem.
+
+The paper was admittedly quiet tough from the mathematical perspective therefore we are satisfied with the further mathematical horizon expansion and with idea of proofs present in the field.
+
+We had also a good occasion to get familiar with gambit, python's library for game theory.
+
+Overall, the field of game theory serves an elegant way of modelling the interactions between the players and we are extremely delighted to learn the basics. The knowledge can be easily transferred to another problems and there are many links with other areas of science to be explored. Game theory itself is a relatively young subfield of mathematics leaving many doors still open for researchers. Aligning with my current interest, there are numerous options to combine the game theory framework and artificial intelligence. For instance, one can consider its role in the generative setting or reinforcement learning.
+
+\subsection{Further Work}
+\label{sec:conclusion2}
+
+Given the time constraints, we were not able to conduct all experiments we would like to do. Given more time in the future I would like to additionally:
+\begin{itemize}
+    \item Increase the number of experiments and their complexity using gambit library.
+    \item Work on more practical guarantees.
+\end{itemize}
+
+% References
+\bibliography{report} % bibliography data in report.bib
+\bibliographystyle{spiebib} % makes bibtex use spiebib.bst
+
+%\newpage
+\section{Appendix}
+\label{sec:appendix}
+
+For the sake of clarity of the proof we decided to slightly change the enumerations of theorems and lemmas and modify the notation to be more intuitive.
+
+For the clarity of the statements we decided to assume that for every player $i$ we do the prediction modelling that matters by at least $\varepsilon$. The original formulation of the last sentence of Theorem \autoref{maintheorem} would be "All players for whom prediction matters are $\varepsilon$-good predictors.", whereas for instance last point of \autoref{lemma2theorem1} would be: "[...] for every player $i$ for whom prediction matters by at least $\varepsilon$.
+
+Will use them: \gls{stage} \gls{stageinf} \gls{n_players} \gls{i_player} \gls{small_t} \gls{big_T} \gls{vareps} \gls{lambdaa} \gls{sigma} \gls{tau} \gls{small_s} \gls{mm} \gls{hiomega} \gls{hiomegat} \gls{hiomegabar} \gls{hiomegabart} \gls{OmegaOfomegabart} \gls{Triangle} \gls{TriangleM} \gls{bigX} \gls{aaa_vector} \gls{AAA_i}  \gls{f_i_given_omegatbar} \gls{AA} \gls{A_i^sigmai} \gls{uvector} \gls{uu_i} \gls{uu_i^1} \gls{weirdo} \gls{fi_model} \gls{bigphi} \gls{bigphii} \gls{null_hyp} \gls{v_0} \gls{vtrue} \gls{alt_hyp} \gls{ppit} \gls{mappingp} \gls{mappingasigma} \gls{rhol} \gls{hh} \gls{betaisi} \gls{betaisitau} \gls{rr}
+
+\begin{comment}
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.27]{songs_visualization/numerical_boxplots.png}
+    \caption{Box plots for statistical analysis of numerical features.}
+    \label{fig:boxplots}
+\end{figure}
+\end{comment}
+
+\end{document} 
