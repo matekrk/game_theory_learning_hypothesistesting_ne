@@ -1,2 +1,0 @@
-import pygambit as pg
-
