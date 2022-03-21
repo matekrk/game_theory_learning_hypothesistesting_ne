@@ -1,3 +1,14 @@
+Presentation 15mins + 5mins questions.
+idea: writing the theorem and explain
+
+1. 2minutes: easy points (finite, normal-form, almost rational)
+2. 
+3. 
+4. 
+5. 
+
+
+
 Foster and Young (2001) demonstrate the failure of Bayesian learning rules to learn mixed equilibria in games of uncertain information. Foster and Young (2003) introduce a learning procedure in which players form hypotheses about their opponents' strategies, which they occasionally test against their opponents' past play.
 
 ### Plan for presentation:
